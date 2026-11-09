@@ -1,541 +1,474 @@
-from pathlib import Path
-
-html = r'''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#080b16">
-<title>MUSOGPT — Gaming AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuning Ralli · Toyota Mark IV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-/* =========================================================
-   MUSOGPT — single-file gaming AI interface
-   HTML + CSS + JavaScript. No external libraries required.
-   ========================================================= */
-:root{
-  --bg:#070a13;--panel:rgba(15,21,39,.88);--panel2:rgba(20,29,51,.78);
-  --line:rgba(119,151,255,.18);--text:#edf3ff;--muted:#9aa8c7;
-  --cyan:#43e8ff;--blue:#527bff;--purple:#a45cff;--pink:#ff4fc8;
-  --green:#56f6ad;--danger:#ff617e;--shadow:0 20px 70px rgba(0,0,0,.48);
-  --radius:22px;--sidebar:270px;
-}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0}
-body{
-  overflow:hidden;color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;
-  background:
-    radial-gradient(ellipse at 15% 15%,rgba(58,89,255,.19),transparent 34%),
-    radial-gradient(ellipse at 88% 80%,rgba(175,54,255,.15),transparent 32%),
-    linear-gradient(135deg,#060914,#0b1020 55%,#080b16);
-}
-body:before{
-  content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;
-  background-image:linear-gradient(rgba(115,151,255,.12) 1px,transparent 1px),
-  linear-gradient(90deg,rgba(115,151,255,.12) 1px,transparent 1px);
-  background-size:42px 42px;mask-image:linear-gradient(to bottom,black,transparent 90%);
-}
-button,input,textarea{font:inherit}
-button{cursor:pointer}
-.app{height:100%;display:flex;position:relative;z-index:1}
-.sidebar{
-  width:var(--sidebar);flex:0 0 var(--sidebar);padding:20px 15px;
-  border-right:1px solid var(--line);background:rgba(5,9,20,.78);
-  backdrop-filter:blur(22px);display:flex;flex-direction:column;gap:18px;
-}
-.brand{display:flex;align-items:center;gap:12px;padding:5px 7px 16px}
-.brand-mark{
-  width:43px;height:43px;border-radius:14px;display:grid;place-items:center;
-  font-weight:900;font-size:20px;color:#07101b;
-  background:linear-gradient(135deg,var(--cyan),#6682ff 55%,var(--pink));
-  box-shadow:0 0 28px rgba(67,232,255,.35),inset 0 1px 0 #fff8;
-  transform:rotate(-5deg)
-}
-.brand-name{font-weight:900;letter-spacing:2px;font-size:18px}
-.brand-sub{font-size:10px;color:var(--muted);letter-spacing:2.5px;margin-top:3px}
-.new-chat{
-  border:1px solid rgba(67,232,255,.45);border-radius:14px;padding:13px 14px;
-  color:white;background:linear-gradient(110deg,rgba(67,232,255,.17),rgba(164,92,255,.18));
-  box-shadow:0 0 22px rgba(67,232,255,.08);text-align:left;transition:.2s
-}
-.new-chat:hover{transform:translateY(-2px);box-shadow:0 8px 28px #43e8ff22}
-.new-chat b{font-size:13px}.new-chat span{float:right;color:var(--cyan);font-size:20px;line-height:14px}
-.side-label{font-size:10px;color:#7282a6;letter-spacing:2px;padding:5px 8px}
-.side-nav{display:grid;gap:6px}
-.nav-btn{
-  border:1px solid transparent;background:transparent;color:#aebbd8;
-  padding:11px 12px;border-radius:12px;text-align:left;display:flex;gap:11px;
-  align-items:center;font-size:13px;transition:.18s
-}
-.nav-btn:hover,.nav-btn.active{background:rgba(90,119,210,.13);border-color:var(--line);color:white}
-.nav-icon{width:20px;text-align:center;color:var(--cyan);font-size:16px}
-.history{overflow:auto;min-height:80px;display:grid;align-content:start;gap:5px}
-.history-item{
-  padding:10px 11px;border-radius:10px;color:#8e9dbd;font-size:12px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer
-}
-.history-item:hover{background:#ffffff0c;color:white}
-.sidebar-bottom{margin-top:auto}
-.profile{
-  display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);
-  border-radius:15px;background:rgba(255,255,255,.035)
-}
-.avatar{
-  width:36px;height:36px;border-radius:12px;display:grid;place-items:center;
-  background:linear-gradient(135deg,#4beaff,#8e5cff);color:#06101c;font-weight:900
-}
-.profile strong{display:block;font-size:12px}.profile small{color:var(--muted);font-size:10px}
-.main{flex:1;min-width:0;display:flex;flex-direction:column}
-.topbar{
-  height:72px;flex:0 0 72px;border-bottom:1px solid var(--line);
-  display:flex;align-items:center;justify-content:space-between;padding:0 28px;
-  background:rgba(7,11,23,.54);backdrop-filter:blur(18px)
-}
-.top-left{display:flex;align-items:center;gap:13px}
-.status-dot{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 12px var(--green)}
-.top-title{font-size:13px;font-weight:700}.top-sub{font-size:10px;color:var(--muted);margin-top:4px}
-.top-actions{display:flex;gap:9px}
-.icon-btn{
-  width:39px;height:39px;border-radius:12px;border:1px solid var(--line);
-  background:#ffffff08;color:#c7d5f6;font-size:16px;transition:.2s
-}
-.icon-btn:hover{border-color:#43e8ff77;color:var(--cyan);background:#43e8ff12}
-.mobile-menu{display:none}
-.content{flex:1;min-height:0;overflow:auto;padding:28px 22px 18px}
-.chat-wrap{max-width:920px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
-.welcome{margin:auto auto 30px;text-align:center;max-width:700px;padding:24px 10px}
-.orb{
-  width:92px;height:92px;margin:0 auto 23px;border-radius:28px;display:grid;place-items:center;
-  background:radial-gradient(circle at 30% 25%,#c5ffff,#43e8ff 25%,#536bff 58%,#8d42c8 100%);
-  box-shadow:0 0 30px #43e8ff55,0 0 80px #795cff33,inset 0 2px 10px #fff9;
-  transform:rotate(-7deg);animation:float 4s ease-in-out infinite
-}
-.orb span{font-size:37px;font-weight:1000;color:#081322;text-shadow:0 2px 0 #fff7}
-@keyframes float{0%,100%{transform:translateY(0) rotate(-7deg)}50%{transform:translateY(-9px) rotate(2deg)}}
-.welcome h1{font-size:clamp(28px,4vw,44px);margin:0;letter-spacing:-1.5px}
-.gradient-text{background:linear-gradient(90deg,var(--cyan),#9b8aff,var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
-.welcome p{color:var(--muted);font-size:14px;line-height:1.7;margin:12px auto 23px;max-width:560px}
-.suggestions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:650px;margin:auto}
-.suggestion{
-  padding:14px 15px;text-align:left;border:1px solid var(--line);border-radius:15px;
-  background:linear-gradient(120deg,#ffffff08,#ffffff03);color:#dce7ff;transition:.2s;font-size:12px
-}
-.suggestion:hover{transform:translateY(-3px);border-color:#43e8ff77;background:#43e8ff0d}
-.suggestion span{display:block;color:var(--cyan);font-size:17px;margin-bottom:7px}
-.messages{display:grid;gap:22px;padding:8px 0 25px}
-.message{display:flex;gap:12px;align-items:flex-start;animation:appear .25s ease}
-@keyframes appear{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.message.user{flex-direction:row-reverse}
-.msg-avatar{
-  flex:0 0 34px;width:34px;height:34px;border-radius:11px;display:grid;place-items:center;
-  background:linear-gradient(135deg,#45eaff,#586bff);color:#06101b;font-weight:900;font-size:12px
-}
-.message.user .msg-avatar{background:linear-gradient(135deg,#a45cff,#ff4fc8);color:white}
-.msg-body{max-width:min(78%,720px)}
-.msg-name{font-size:10px;color:#8292b5;margin:0 0 6px 3px;letter-spacing:.6px}
-.message.user .msg-name{text-align:right}
-.bubble{
-  padding:13px 16px;border:1px solid var(--line);border-radius:5px 17px 17px 17px;
-  background:linear-gradient(130deg,rgba(25,36,64,.94),rgba(14,21,39,.94));
-  color:#e8efff;font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere;
-  box-shadow:0 10px 28px #0002
-}
-.message.user .bubble{
-  border-radius:17px 5px 17px 17px;background:linear-gradient(130deg,#35417d,#432b6a);
-  border-color:#9b7cff44
-}
-.bubble pre{white-space:pre;overflow:auto;background:#060a14;border:1px solid #526b9b55;border-radius:10px;padding:13px;font-size:12px}
-.bubble code{font-family:Consolas,monospace;color:#8cf4ff}
-.msg-tools{display:flex;gap:6px;margin:6px 0 0 3px}
-.message.user .msg-tools{justify-content:flex-end}
-.mini-btn{border:0;background:transparent;color:#7587ad;font-size:10px;padding:4px 6px}
-.mini-btn:hover{color:var(--cyan)}
-.typing{display:flex;gap:5px;padding:5px 3px}
-.typing i{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:pulse .8s infinite alternate}
-.typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
-@keyframes pulse{to{opacity:.25;transform:translateY(-4px)}}
-.composer-area{padding:8px 22px 20px;background:linear-gradient(transparent,rgba(6,10,20,.75))}
-.composer{max-width:920px;margin:auto}
-.composer-box{
-  border:1px solid rgba(100,139,255,.35);border-radius:20px;padding:12px 13px 10px;
-  background:rgba(14,21,39,.94);box-shadow:0 12px 45px #0005,0 0 25px #526bff12;
-  transition:.2s
-}
-.composer-box:focus-within{border-color:#43e8ff99;box-shadow:0 0 0 3px #43e8ff10,0 15px 45px #0006}
-#prompt{width:100%;resize:none;min-height:30px;max-height:150px;border:0;outline:0;background:transparent;color:white;font-size:13px;line-height:1.6}
-#prompt::placeholder{color:#7887a8}
-.composer-tools{display:flex;align-items:center;justify-content:space-between;margin-top:7px}
-.tool-left,.tool-right{display:flex;gap:7px;align-items:center}
-.tool-btn{border:1px solid transparent;border-radius:10px;padding:7px 9px;background:transparent;color:#8798ba;font-size:11px}
-.tool-btn:hover{background:#ffffff0b;color:var(--cyan)}
-.send-btn{
-  width:38px;height:36px;border:0;border-radius:11px;color:#06101a;font-size:18px;font-weight:900;
-  background:linear-gradient(135deg,var(--cyan),#8b80ff);box-shadow:0 0 18px #43e8ff44
-}
-.send-btn:hover{filter:brightness(1.13);transform:translateY(-1px)}
-.disclaimer{text-align:center;color:#657493;font-size:10px;margin-top:9px}
-.modal-backdrop{position:fixed;inset:0;background:#02040bd9;z-index:20;display:none;place-items:center;padding:20px}
-.modal-backdrop.show{display:grid}
-.modal{width:min(520px,100%);border:1px solid #6885d755;border-radius:22px;background:#10182b;padding:22px;box-shadow:var(--shadow)}
-.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.modal h2{font-size:18px;margin:0}.modal p{font-size:12px;color:var(--muted);line-height:1.6}
-.field{display:grid;gap:7px;margin:14px 0}.field label{font-size:11px;color:#aebcda}
-.field input{width:100%;border:1px solid var(--line);background:#080e1d;color:white;padding:11px;border-radius:10px;outline:0}
-.field input:focus{border-color:var(--cyan)}
-.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
-.primary-btn,.secondary-btn{border-radius:10px;padding:10px 14px;font-size:12px}
-.primary-btn{border:0;background:linear-gradient(100deg,var(--cyan),#8b80ff);color:#06101b;font-weight:800}
-.secondary-btn{border:1px solid var(--line);background:transparent;color:#cbd7f2}
-.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;
-  background:#172541;border:1px solid #43e8ff55;color:#e9faff;padding:10px 15px;border-radius:12px;
-  font-size:12px;z-index:30;transition:.25s}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-@media(max-width:800px){
-  .sidebar{position:fixed;z-index:15;left:-285px;top:0;bottom:0;transition:.25s;box-shadow:var(--shadow)}
-  .sidebar.open{left:0}.mobile-menu{display:block}.topbar{padding:0 14px}
-  .content{padding:18px 13px}.composer-area{padding:8px 12px 15px}
-  .suggestions{grid-template-columns:1fr}.welcome{padding:15px 5px}
-  .msg-body{max-width:86%}
-}
-@media(max-width:440px){.top-sub{display:none}.tool-btn.optional{display:none}.brand-name{font-size:16px}}
+  :root{
+    --neon:#b04cff; --cyan:#2de2ff; --pink:#ff3d8b; --gold:#ffd23f;
+    --ink:#05060f; --panel:#0c1024; --text:#eaf0ff;
+    --font:'Press Start 2P', ui-monospace, 'Courier New', monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%;}
+  body{
+    font-family:var(--font); color:var(--text); background:#02030c;
+    overflow-x:hidden; line-height:1.6;
+  }
+
+  /* ===== TO'LIQ SAHNA (qatlamli fon) ===== */
+  .scene{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+    background:linear-gradient(#02030c 0%,#080c2a 45%,#221044 75%,#4a1d5c 100%);}
+  .stars,.stars::before{position:absolute;inset:0;content:"";
+    background-image:
+      radial-gradient(2px 2px at 10% 20%,#fff 50%,transparent 51%),
+      radial-gradient(2px 2px at 30% 8%,#cfe 50%,transparent 51%),
+      radial-gradient(3px 3px at 55% 18%,#fff 50%,transparent 51%),
+      radial-gradient(2px 2px at 72% 6%,#fff 50%,transparent 51%),
+      radial-gradient(2px 2px at 88% 24%,#fdf 50%,transparent 51%),
+      radial-gradient(2px 2px at 20% 38%,#fff 50%,transparent 51%),
+      radial-gradient(3px 3px at 64% 40%,#cff 50%,transparent 51%),
+      radial-gradient(2px 2px at 92% 48%,#fff 50%,transparent 51%),
+      radial-gradient(2px 2px at 42% 30%,#fff 50%,transparent 51%);
+    animation:twinkle 4s ease-in-out infinite;}
+  .stars::before{background-position:37px 53px;background-size:80% 90%;animation-duration:6s;animation-delay:-2s;opacity:.7}
+  @keyframes twinkle{0%,100%{opacity:.35}50%{opacity:1}}
+  .moon{position:absolute;top:8%;right:12%;width:clamp(50px,8vw,120px);aspect-ratio:1;border-radius:50%;
+    background:#f4f1d8;box-shadow:inset -14px -6px 0 #d9d5ae,0 0 60px 18px rgba(244,241,216,.25);
+    animation:float 9s ease-in-out infinite;}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .cloud{position:absolute;height:14px;background:rgba(120,110,190,.25);box-shadow:20px -10px 0 rgba(120,110,190,.25),-18px -6px 0 rgba(120,110,190,.2);
+    animation:drift linear infinite;}
+  .cloud.c1{top:18%;width:90px;left:-150px;animation-duration:60s}
+  .cloud.c2{top:30%;width:130px;left:-200px;animation-duration:90s;animation-delay:-30s}
+  .cloud.c3{top:12%;width:70px;left:-120px;animation-duration:75s;animation-delay:-55s}
+  @keyframes drift{to{transform:translateX(calc(100vw + 400px))}}
+  .mount{position:absolute;left:0;right:0;bottom:12%;}
+  .mount.m1{height:34%;background:#150f33;
+    clip-path:polygon(0 100%,0 55%,10% 30%,20% 58%,32% 20%,46% 60%,58% 28%,72% 64%,84% 34%,100% 58%,100% 100%);}
+  .mount.m2{height:24%;background:#0c0a22;
+    clip-path:polygon(0 100%,0 60%,14% 38%,26% 66%,40% 36%,55% 70%,68% 42%,82% 72%,100% 44%,100% 100%);}
+  .city{position:absolute;left:0;right:0;bottom:12%;height:12%;
+    background:
+      repeating-linear-gradient(90deg,#070718 0 28px,transparent 28px 40px),
+      repeating-linear-gradient(90deg,#0a0a22 0 18px,transparent 18px 55px);
+    clip-path:polygon(0 100%,0 40%,6% 40%,6% 15%,12% 15%,12% 50%,20% 50%,20% 25%,27% 25%,27% 60%,36% 60%,36% 10%,43% 10%,43% 45%,52% 45%,52% 30%,60% 30%,60% 55%,70% 55%,70% 20%,78% 20%,78% 48%,88% 48%,88% 28%,100% 28%,100% 100%);
+    opacity:.9}
+  .ground{position:absolute;left:0;right:0;bottom:0;height:12%;background:#0b0c14;
+    border-top:3px solid var(--pink);box-shadow:0 -6px 30px rgba(255,61,139,.55);}
+  .ground::after{content:"";position:absolute;left:0;right:0;top:48%;height:6px;
+    background:repeating-linear-gradient(90deg,var(--gold) 0 40px,transparent 40px 90px);
+    animation:road 1.2s linear infinite;}
+  @keyframes road{to{background-position:90px 0}}
+  .fog{position:absolute;left:0;right:0;bottom:10%;height:14%;
+    background:linear-gradient(transparent,rgba(120,70,190,.22));}
+
+  /* ===== ILOVA ===== */
+  .app{position:relative;z-index:1;min-height:100svh;display:flex;flex-direction:column;align-items:center;
+    gap:12px;padding:14px 10px 28px;
+    --w:clamp(260px,calc((100svh - 330px) * .6667),min(92vw,1000px));}
+  header{text-align:center;width:min(94vw,var(--w));}
+  h1{font-size:clamp(14px,2.2vw + 6px,34px);color:var(--cyan);text-shadow:3px 3px 0 var(--neon),0 0 18px rgba(45,226,255,.6);letter-spacing:1px}
+  .sub{margin-top:8px;font-size:clamp(7px,.7vw + 5px,12px);color:#b9b3e6}
+
+  .hud{width:var(--w);display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .hud div{background:var(--panel);border:3px solid #000;box-shadow:inset 0 0 0 2px #2a2f63;padding:6px 4px;text-align:center}
+  .hud small{display:block;font-size:clamp(5px,.5vw + 4px,9px);color:#8e96d6}
+  .hud b{display:block;margin-top:4px;font-size:clamp(8px,.8vw + 5px,15px);font-weight:400;color:var(--gold)}
+  .hud .pen b{color:var(--pink)}
+  @media (max-width:420px){.hud{grid-template-columns:repeat(2,1fr)}}
+
+  .bar{width:var(--w);height:10px;background:#000;border:2px solid #2a2f63}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--neon));transition:width .1s linear}
+
+  .frame{position:relative;width:var(--w);aspect-ratio:2/3;background:#000;
+    border:5px solid #000;box-shadow:0 0 0 4px #2a2f63,0 0 40px rgba(176,76,255,.45),0 12px 0 rgba(0,0,0,.5);}
+  canvas{display:block;width:100%;height:100%}
+
+  .overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;padding:16px;text-align:center;background:rgba(3,4,16,.84);backdrop-filter:blur(3px)}
+  .overlay[hidden]{display:none}
+  .overlay h2{font-size:clamp(11px,1.4vw + 6px,26px);color:var(--cyan);text-shadow:2px 2px 0 var(--neon)}
+  .overlay h2.bad{color:var(--pink);text-shadow:2px 2px 0 #5a0f2e}
+  .overlay h2.good{color:var(--gold);text-shadow:2px 2px 0 #7a4c00}
+  .overlay p{font-size:clamp(7px,.6vw + 5px,12px);line-height:1.9;color:#cfd6ff;max-width:32em;white-space:pre-line}
+  .load{width:70%;height:14px;border:3px solid #fff;background:#000}
+  .load i{display:block;height:100%;width:0;background:var(--cyan);transition:width .2s}
+  .btns{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+
+  .btn{font-family:var(--font);font-size:clamp(8px,.7vw + 5px,13px);color:#fff;background:var(--neon);
+    border:4px solid #000;padding:12px 16px;cursor:pointer;box-shadow:0 6px 0 #5a1d99,inset 0 4px 0 rgba(255,255,255,.3);
+    transition:transform .06s,box-shadow .06s,filter .15s;touch-action:manipulation}
+  .btn.alt{background:#2a2f63;box-shadow:0 6px 0 #14183a,inset 0 4px 0 rgba(255,255,255,.2)}
+  .btn:hover{filter:brightness(1.2)}
+  .btn:active{transform:translateY(5px);box-shadow:0 1px 0 #5a1d99}
+  .btn.alt:active{box-shadow:0 1px 0 #14183a}
+  .btn:focus-visible,.pad:focus-visible{outline:4px solid var(--gold);outline-offset:3px}
+
+  .touch{width:var(--w);display:flex;justify-content:space-between;gap:10px}
+  .touch .grp{display:flex;gap:10px}
+  .pad{font-family:var(--font);font-size:20px;width:clamp(56px,16vw,84px);height:clamp(56px,16vw,84px);color:#fff;background:#1a1f4d;
+    border:4px solid #000;box-shadow:0 6px 0 #0a0d28,inset 0 4px 0 rgba(255,255,255,.2);cursor:pointer;
+    user-select:none;-webkit-user-select:none;touch-action:none}
+  .pad:active,.pad.on{transform:translateY(5px);box-shadow:0 1px 0 #0a0d28;background:var(--neon)}
+  .pad.gas{background:#17613a}.pad.brk{background:#7a1b3a}
+  .help{width:var(--w);text-align:center;font-size:clamp(6px,.5vw + 4px,11px);color:#9aa3e6;line-height:2}
+  .note{width:var(--w);text-align:center;font-size:clamp(6px,.5vw + 4px,10px);color:var(--pink)}
+  .note[hidden]{display:none}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+  @media (min-width:1800px){.btn{padding:18px 26px}}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important}
+  }
 </style>
 </head>
 <body>
-<div class="app">
-  <aside class="sidebar" id="sidebar">
-    <div class="brand">
-      <div class="brand-mark">M</div>
-      <div><div class="brand-name">MUSOGPT</div><div class="brand-sub">NEXT GEN AI</div></div>
-    </div>
-    <button class="new-chat" id="newChat"><b>＋ Yangi suhbat</b><span>✦</span></button>
-    <div>
-      <div class="side-label">MENYU</div>
-      <nav class="side-nav">
-        <button class="nav-btn active" data-mode="chat"><span class="nav-icon">◈</span> AI Chat</button>
-        <button class="nav-btn" data-mode="code"><span class="nav-icon">⌘</span> Kod yordamchisi</button>
-        <button class="nav-btn" data-mode="ideas"><span class="nav-icon">✧</span> G‘oyalar</button>
-      </nav>
-    </div>
-    <div>
-      <div class="side-label">OXIRGI SUHBATLAR</div>
-      <div class="history" id="history"></div>
-    </div>
-    <div class="sidebar-bottom">
-      <div class="side-label">TIZIM</div>
-      <nav class="side-nav">
-        <button class="nav-btn" id="settingsBtn"><span class="nav-icon">⚙</span> Sozlamalar / API</button>
-        <button class="nav-btn" id="clearBtn"><span class="nav-icon">⌫</span> Tarixni tozalash</button>
-      </nav>
-      <div class="profile">
-        <div class="avatar">MU</div>
-        <div><strong>Musobek</strong><small>Gaming Creator</small></div>
-      </div>
-    </div>
-  </aside>
-
-  <main class="main">
-    <header class="topbar">
-      <div class="top-left">
-        <button class="icon-btn mobile-menu" id="menuBtn">☰</button>
-        <div class="status-dot"></div>
-        <div><div class="top-title">MUSOGPT <span style="color:var(--cyan)">● ONLINE</span></div><div class="top-sub">Gaming AI assistant · Suhbat rejimi</div></div>
-      </div>
-      <div class="top-actions">
-        <button class="icon-btn" id="voiceBtn" title="Ovoz bilan gapirish">🎙</button>
-        <button class="icon-btn" id="themeBtn" title="Rang effektini almashtirish">◐</button>
-        <button class="icon-btn" id="topSettings" title="Sozlamalar">⚙</button>
-      </div>
-    </header>
-
-    <section class="content" id="content">
-      <div class="chat-wrap">
-        <section class="welcome" id="welcome">
-          <div class="orb"><span>M</span></div>
-          <h1>Salom, <span class="gradient-text">Musobek!</span></h1>
-          <p>Men MUSOGPT — sening gaming uslubidagi AI yordamchingman. Savol ber, kod yozdir, g‘oya top yoki loyihangni birga rivojlantiramiz.</p>
-          <div class="suggestions">
-            <button class="suggestion" data-prompt="Menga zamonaviy gaming portfolio saytini HTML va CSS bilan yaratib ber."><span>▣</span>Gaming sayt yaratish</button>
-            <button class="suggestion" data-prompt="JavaScriptni noldan o‘rganish uchun reja tuzib ber."><span>⌘</span>Dasturlashni o‘rganish</button>
-            <button class="suggestion" data-prompt="Minecraft YouTube kanalim uchun 10 ta original video g‘oyasi ber."><span>◉</span>YouTube g‘oyalari</button>
-            <button class="suggestion" data-prompt="Menga yangi AI ilova uchun kreativ funksiyalar taklif qil."><span>✧</span>AI loyiha g‘oyalari</button>
-          </div>
-        </section>
-        <div class="messages" id="messages" aria-live="polite"></div>
-      </div>
-    </section>
-
-    <footer class="composer-area">
-      <div class="composer">
-        <div class="composer-box">
-          <textarea id="prompt" rows="1" placeholder="MUSOGPT ga xabar yoz... (Enter — yuborish)"></textarea>
-          <div class="composer-tools">
-            <div class="tool-left">
-              <button class="tool-btn" id="attachBtn" title="Fayl tanlash">＋ Fayl</button>
-              <button class="tool-btn optional" id="imageBtn" title="Rasm yaratish (API kerak)">▧ Rasm</button>
-              <input type="file" id="fileInput" hidden accept="image/*,.txt,.js,.html,.css">
-            </div>
-            <div class="tool-right">
-              <span style="font-size:10px;color:#7383a5" id="modeLabel">AI CHAT</span>
-              <button class="send-btn" id="sendBtn" title="Yuborish">➤</button>
-            </div>
-          </div>
-        </div>
-        <div class="disclaimer">MUSOGPT xato qilishi mumkin. Muhim ma’lumotlarni tekshirib ko‘r.</div>
-      </div>
-    </footer>
-  </main>
+<div class="scene" aria-hidden="true">
+  <div class="stars"></div><div class="moon"></div>
+  <div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+  <div class="mount m1"></div><div class="mount m2"></div><div class="city"></div>
+  <div class="fog"></div><div class="ground"></div>
 </div>
 
-<div class="modal-backdrop" id="settingsModal">
-  <div class="modal">
-    <div class="modal-head"><h2>⚙ MUSOGPT sozlamalari</h2><button class="icon-btn" id="closeModal">×</button></div>
-    <p>Haqiqiy AI javoblarini ulash uchun o‘zingning backend server manzilingni kirgiz. API kalitini bu HTML fayl ichiga yozma — xavfsiz serverda saqla.</p>
-    <div class="field"><label for="apiEndpoint">Chat API endpoint (ixtiyoriy)</label><input id="apiEndpoint" placeholder="https://your-server.com/api/chat"></div>
-    <div class="field"><label for="imageEndpoint">Rasm yaratish endpoint (ixtiyoriy)</label><input id="imageEndpoint" placeholder="https://your-server.com/api/image"></div>
-    <p style="font-size:10px">Chat server JSON qabul qiladi: <code>{ "message": "...", "history": [] }</code> va <code>{ "reply": "..." }</code> qaytaradi. Rasm serveri <code>{ "prompt": "..." }</code> qabul qilib, <code>{ "imageUrl": "https://..." }</code> qaytarishi mumkin.</p>
-    <div class="modal-actions"><button class="secondary-btn" id="cancelSettings">Bekor qilish</button><button class="primary-btn" id="saveSettings">Saqlash</button></div>
+<main class="app">
+  <header>
+    <h1>TUNING RALLI</h1>
+    <p class="sub">Toyota Mark IV · qora · tungi poyga</p>
+  </header>
+
+  <section class="hud" aria-label="Poyga ko'rsatkichlari">
+    <div><small>VAQT</small><b id="hTime">0.00</b></div>
+    <div><small>TEZLIK</small><b id="hSpeed">0</b></div>
+    <div class="pen"><small>JARIMA</small><b id="hPen">0</b></div>
+    <div><small>REKORD</small><b id="hBest">--</b></div>
+  </section>
+  <div class="bar" role="progressbar" aria-label="Yo'l bosib o'tilishi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="prog"></i></div>
+
+  <div class="frame">
+    <canvas id="game" width="480" height="720" aria-label="Rally o'yin maydoni"></canvas>
+    <div class="overlay" id="ov" role="dialog" aria-live="polite">
+      <h2 id="ovTitle">Yuklanmoqda...</h2>
+      <p id="ovText">Mashina tayyorlanmoqda</p>
+      <div class="load" id="ovLoad"><i id="ovLoadBar"></i></div>
+      <div class="btns" id="ovBtns"></div>
+    </div>
   </div>
-</div>
-<div class="toast" id="toast"></div>
+
+  <p class="note" id="note" hidden>Diqqat: rekord brauzerda saqlanmadi.</p>
+
+  <div class="touch" aria-label="Sensorli boshqaruv">
+    <div class="grp">
+      <button class="pad" data-k="left" aria-label="Chapga">◀</button>
+      <button class="pad" data-k="right" aria-label="O'ngga">▶</button>
+    </div>
+    <div class="grp">
+      <button class="pad brk" data-k="down" aria-label="Tormoz">■</button>
+      <button class="pad gas" data-k="up" aria-label="Gaz">▲</button>
+    </div>
+  </div>
+  <p class="help">← → yoki A D: burilish · ↑ yoki W: gaz · ↓ yoki S: tormoz · P: pauza</p>
+  <div class="sr" id="live" aria-live="assertive"></div>
+  <noscript><p class="note">O'yin uchun JavaScript yoqilgan bo'lishi kerak.</p></noscript>
+</main>
 
 <script>
-/* ========================= MUSOGPT JAVASCRIPT ========================= */
-const $ = (id) => document.getElementById(id);
-const messagesEl = $("messages");
-const promptEl = $("prompt");
-const welcomeEl = $("welcome");
-const historyEl = $("history");
-let currentMode = "chat";
-let currentChatId = Date.now();
-let chats = JSON.parse(localStorage.getItem("musogpt_chats") || "[]");
-let conversation = [];
-let attachedFile = null;
-let recognition = null;
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const W=480,H=720,CAR_Y=560,TRACK=14000,HALF=100,LIMIT=80,ROW=4;
+const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const cv=$('game'); let ctx=null;
+try{ctx=cv.getContext('2d');}catch(e){}
+const dark=document.createElement('canvas'); dark.width=W; dark.height=H;
+const dctx=dark.getContext?dark.getContext('2d'):null;
 
-function toast(message){
-  const el=$("toast");el.textContent=message;el.classList.add("show");
-  clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove("show"),2400);
+const ov=$('ov'),ovTitle=$('ovTitle'),ovText=$('ovText'),ovLoad=$('ovLoad'),ovLoadBar=$('ovLoadBar'),ovBtns=$('ovBtns');
+const hTime=$('hTime'),hSpeed=$('hSpeed'),hPen=$('hPen'),hBest=$('hBest'),prog=$('prog'),live=$('live'),note=$('note');
+
+/* ---------- yordamchi ---------- */
+function hash(n){n=Math.imul(n^(n>>>16),0x45d9f3b);n=Math.imul(n^(n>>>16),0x45d9f3b);n^=n>>>16;return (n>>>0)/4294967296;}
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const fmt=t=>t.toFixed(2);
+function center(y){const r=Math.min(1,Math.max(0,y/700));return r*(130*Math.sin(y/1000)+70*Math.sin(y/430+1.3));}
+
+/* ---------- rekord ---------- */
+let best=null;
+function loadBest(){
+  try{const v=localStorage.getItem('rally-best');best=v?parseFloat(v):null;}
+  catch(e){note.hidden=false;}
+  hBest.textContent=best?fmt(best):'--';
 }
-function saveChats(){
-  localStorage.setItem("musogpt_chats",JSON.stringify(chats.slice(0,30)));
-  renderHistory();
+function saveBest(t){
+  best=t; hBest.textContent=fmt(t);
+  try{localStorage.setItem('rally-best',String(t));}catch(e){note.hidden=false;}
 }
-function renderHistory(){
-  historyEl.innerHTML="";
-  chats.slice().reverse().forEach(chat=>{
-    const item=document.createElement("div");item.className="history-item";
-    item.textContent="◌  "+(chat.title||"Yangi suhbat");
-    item.title=chat.title||"Yangi suhbat";
-    item.onclick=()=>loadChat(chat.id);
-    historyEl.appendChild(item);
-  });
-}
-function persistCurrentChat(){
-  if(!conversation.length)return;
-  const first=conversation.find(m=>m.role==="user");
-  const title=first?first.content.slice(0,38):"Yangi suhbat";
-  const index=chats.findIndex(c=>c.id===currentChatId);
-  const record={id:currentChatId,title,messages:conversation};
-  if(index>=0)chats[index]=record;else chats.push(record);
-  saveChats();
-}
-function loadChat(id){
-  const chat=chats.find(c=>c.id===id);if(!chat)return;
-  currentChatId=id;conversation=chat.messages||[];messagesEl.innerHTML="";
-  welcomeEl.style.display=conversation.length?"none":"";
-  conversation.forEach(m=>renderMessage(m.role,m.content,false));
-  $("sidebar").classList.remove("open");
-}
-function startNewChat(){
-  currentChatId=Date.now()+Math.floor(Math.random()*1000);
-  conversation=[];messagesEl.innerHTML="";welcomeEl.style.display="";
-  promptEl.value="";promptEl.focus();
-  $("sidebar").classList.remove("open");
-}
-function escapeHTML(str){
-  return String(str).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-}
-function formatMessage(text){
-  let safe=escapeHTML(text);
-  // Display fenced code blocks with a copyable preformatted section.
-  safe=safe.replace(/```([\w-]*)\n?([\s\S]*?)```/g,(match,lang,code)=>
-    `<pre><code>${code.trim()}</code></pre>`);
-  safe=safe.replace(/`([^`]+)`/g,"<code>$1</code>");
-  safe=safe.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>");
-  return safe;
-}
-function renderMessage(role,content,animate=true){
-  const row=document.createElement("article");
-  row.className="message "+(role==="user"?"user":"assistant");
-  if(!animate)row.style.animation="none";
-  const avatar=document.createElement("div");avatar.className="msg-avatar";
-  avatar.textContent=role==="user"?"MU":"M";
-  const body=document.createElement("div");body.className="msg-body";
-  const name=document.createElement("div");name.className="msg-name";
-  name.textContent=role==="user"?"SEN":"MUSOGPT";
-  const bubble=document.createElement("div");bubble.className="bubble";
-  bubble.innerHTML=formatMessage(content);
-  const tools=document.createElement("div");tools.className="msg-tools";
-  if(role!=="user"){
-    const copy=document.createElement("button");copy.className="mini-btn";copy.textContent="▢ Nusxa olish";
-    copy.onclick=()=>{navigator.clipboard?.writeText(content);toast("Javob nusxalandi");};
-    tools.appendChild(copy);
+
+/* ---------- to'siqlar ---------- */
+const obstacles=[];
+(function(){
+  const r=rng(7);
+  for(let y=900;y<TRACK-500;y+=260+r()*200){
+    obstacles.push({y:y,off:(r()*2-1)*(HALF-30),type:r()<.5?'cone':'rock',hit:false});
   }
-  body.append(name,bubble,tools);row.append(avatar,body);messagesEl.appendChild(row);
-  $("content").scrollTop=$("content").scrollHeight;
-  return row;
-}
-function addMessage(role,content){
-  conversation.push({role,content});
-  renderMessage(role,content);
-  persistCurrentChat();
-}
-function showTyping(){
-  const row=document.createElement("article");row.className="message";row.id="typing";
-  row.innerHTML='<div class="msg-avatar">M</div><div class="msg-body"><div class="msg-name">MUSOGPT</div><div class="bubble"><div class="typing"><i></i><i></i><i></i></div></div></div>';
-  messagesEl.appendChild(row);$("content").scrollTop=$("content").scrollHeight;
-}
-function removeTyping(){$("typing")?.remove();}
+})();
 
-function localReply(input){
-  const q=input.toLowerCase();
-  if(/salom|assalom|hello|hi\b/.test(q))
-    return "Salom! ⚡ MUSOGPT ishga tayyor. Nima qilamiz — kod yozamizmi, yangi loyiha o‘ylab topamizmi yoki savolingga javob beraymi?";
-  if(/html|css|javascript|js|kod|code|sayt|website/.test(q))
-    return "Albatta! 💻 Kod yozishda yordam beraman.\n\nAniqroq va ishlaydigan natija berishim uchun quyidagilarni yoz:\n1. Qaysi til kerak: HTML, CSS, JavaScript yoki boshqami?\n2. Dastur nima qilishi kerak?\n3. Dizayn qanday bo‘lsin?\n\nEslatma: bu hozirgi demo rejim. Haqiqiy AI kabi istalgan yangi kodni yaratish uchun Sozlamalar bo‘limidan backend API ulash kerak.";
-  if(/minecraft|maynkraft/.test(q))
-    return "🎮 Minecraft loyihasi zo‘r! Men mod g‘oyalari, komandalar, server konseptlari, video ssenariylari va Minecraft uchun sayt kodlari bilan yordam bera olaman. Qaysi versiya va qaysi loaderdan foydalanayotganingni ham yoz.";
-  if(/youtube|youtuber|video|kanal/.test(q))
-    return "📹 YouTube uchun yordam beraman! Video g‘oyasi, sarlavha, tavsif, teglar, thumbnail konsepti yoki kanal dizaynini ishlab chiqishimiz mumkin. Qaysi biri kerak?";
-  if(/rasm|image|picture|chiz/.test(q))
-    return "🎨 Rasm yaratish funksiyasi uchun alohida image-generation API kerak. Sozlamalarda rasm endpointini ulaganingdan keyin bu tugma serverga so‘rov yuboradi.";
-  if(/rahmat|thanks/.test(q))
-    return "Arzimaydi! ⚡ Yana nima ustida ishlaymiz?";
-  if(/kim san|kimsan|isming/.test(q))
-    return "Men MUSOGPT — shu loyiha uchun yaratilgan gaming uslubidagi AI yordamchi interfeysman. Haqiqiy aqlli javoblar uchun AI model API bilan ulanishim kerak.";
-  return "Xabaringni oldim! ✨ Hozir MUSOGPT demo rejimida ishlayapti, shuning uchun javoblarim cheklangan. Haqiqiy ChatGPT kabi turli savollarga mustaqil javob berishim uchun Sozlamalar → Chat API endpoint qismiga backend manzilini kiritish kerak.\n\nSavolingni aniqroq yozsang, demo rejimida ham qo‘limdan kelganicha yordam beraman.";
+/* ---------- holat ---------- */
+const car={x:0,y:0,a:0,v:0};
+let camX=0,time=0,penalty=0,flash=0,shake=0,countT=0,lastCount=-9,state='loading';
+const parts=[];
+const keys={left:0,right:0,up:0,down:0}, touch={left:0,right:0,up:0,down:0};
+
+function resetRun(){
+  car.x=0;car.y=0;car.a=0;car.v=0;camX=0;time=0;penalty=0;flash=0;shake=0;parts.length=0;
+  obstacles.forEach(o=>o.hit=false);
 }
-async function requestAI(input){
-  const endpoint=localStorage.getItem("musogpt_api_endpoint");
-  if(!endpoint)return localReply(input);
-  const response=await fetch(endpoint,{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({message:input,history:conversation.slice(-16)})
+
+/* ---------- oyna (overlay) ---------- */
+function showOverlay(cfg){
+  ov.hidden=false;
+  ovTitle.textContent=cfg.title; ovTitle.className=cfg.cls||'';
+  ovText.textContent=cfg.text||'';
+  ovLoad.hidden=!cfg.loading;
+  ovBtns.innerHTML='';
+  (cfg.buttons||[]).forEach((b,i)=>{
+    const el=document.createElement('button');
+    el.className='btn'+(b.alt?' alt':''); el.textContent=b.label; el.type='button';
+    el.addEventListener('click',b.fn); ovBtns.appendChild(el);
+    if(i===0) setTimeout(()=>el.focus({preventScroll:true}),30);
   });
-  if(!response.ok)throw new Error("Server javobi: "+response.status);
-  const data=await response.json();
-  return data.reply||data.message||"Serverdan javob kelmadi.";
 }
-async function sendMessage(textOverride){
-  const text=(textOverride??promptEl.value).trim();
-  if(!text&&!attachedFile)return;
-  const outgoing=text+(attachedFile?"\n[Biriktirilgan fayl: "+attachedFile.name+"]":"");
-  promptEl.value="";promptEl.style.height="auto";
-  if(welcomeEl)welcomeEl.style.display="none";
-  addMessage("user",outgoing);attachedFile=null;
-  $("fileInput").value="";
-  $("sendBtn").disabled=true;showTyping();
-  try{
-    const answer=await requestAI(outgoing);
-    removeTyping();addMessage("assistant",answer);
-  }catch(error){
-    removeTyping();
-    addMessage("assistant","Ulanishda muammo yuz berdi. ⚠️\n"+error.message+"\n\nAPI manzili to‘g‘ri ekanini va server ishlayotganini tekshir.");
-  }finally{$("sendBtn").disabled=false;promptEl.focus();}
+const hideOverlay=()=>{ov.hidden=true;};
+
+function showReady(){
+  state='ready';
+  showOverlay({title:'TUNING RALLI',
+    text:"Yo'lda qoling, to'siqlarga urilmang va marraga eng tez yetib keling.\nVaqt chegarasi: "+LIMIT+" soniya.\nYo'ldan chiqsangiz sekinlashasiz, to'siq +2 soniya jarima.",
+    buttons:[{label:'BOSHLASH',fn:startRun}]});
 }
-function setMode(mode){
-  currentMode=mode;
-  document.querySelectorAll(".nav-btn[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));
-  $("modeLabel").textContent=mode==="code"?"KOD YORDAMCHISI":mode==="ideas"?"G‘OYALAR":"AI CHAT";
-  promptEl.placeholder=mode==="code"?"Qanday kod kerakligini yoz...":mode==="ideas"?"Qanday loyiha uchun g‘oya kerak?":"MUSOGPT ga xabar yoz...";
-  $("sidebar").classList.remove("open");
-  if(mode==="code")toast("Kod yordamchisi rejimi tanlandi");
-  if(mode==="ideas")toast("G‘oyalar rejimi tanlandi");
+function startRun(){resetRun();state='count';countT=3;hideOverlay();cv.focus&&0;}
+function pauseGame(){
+  if(state!=='run')return;
+  state='pause';
+  showOverlay({title:'PAUZA',text:'Davom etamizmi?',buttons:[
+    {label:'DAVOM ETISH',fn:()=>{state='run';hideOverlay();}},
+    {label:'QAYTA BOSHLASH',alt:1,fn:startRun}]});
 }
-function openSettings(){
-  $("apiEndpoint").value=localStorage.getItem("musogpt_api_endpoint")||"";
-  $("imageEndpoint").value=localStorage.getItem("musogpt_image_endpoint")||"";
-  $("settingsModal").classList.add("show");
+function showError(msg){
+  state='error';
+  showOverlay({title:'XATO',cls:'bad',text:msg,buttons:[{label:'QAYTA URINISH',fn:()=>location.reload()}]});
 }
-function closeSettings(){$("settingsModal").classList.remove("show");}
-async function generateImage(){
-  const prompt=promptEl.value.trim();
-  if(!prompt){toast("Avval rasm uchun tavsif yoz");return;}
-  const endpoint=localStorage.getItem("musogpt_image_endpoint");
-  if(!endpoint){toast("Avval Sozlamalardan image API ulang");return;}
-  addMessage("user","Rasm yarat: "+prompt);promptEl.value="";showTyping();
-  try{
-    const res=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})});
-    if(!res.ok)throw new Error("Server xatosi: "+res.status);
-    const data=await res.json();removeTyping();
-    if(data.imageUrl){
-      const msg="Rasm tayyor! 🖼\n"+data.imageUrl;addMessage("assistant",msg);
-      const last=messagesEl.lastElementChild;
-      const img=document.createElement("img");img.src=data.imageUrl;img.alt="Yaratilgan rasm";
-      img.style.cssText="max-width:100%;border-radius:12px;margin-top:10px;display:block";
-      last.querySelector(".bubble").appendChild(img);
-    }else addMessage("assistant","Server javob berdi, lekin imageUrl maydoni topilmadi.");
-  }catch(e){removeTyping();addMessage("assistant","Rasm yaratib bo‘lmadi: "+e.message);}
+function finishWin(){
+  state='win';
+  const t=time+penalty; const rec=(best===null||t<best);
+  if(rec) saveBest(t);
+  live.textContent="Marraga yetdingiz!";
+  showOverlay({title:'MARRA!',cls:'good',
+    text:'Natija: '+fmt(t)+' s\n(Haydash '+fmt(time)+' + jarima '+fmt(penalty)+')\n'+(rec?'YANGI REKORD!':'Rekord: '+fmt(best)+' s'),
+    buttons:[{label:'YANA POYGA',fn:startRun}]});
 }
-function startVoice(){
-  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SpeechRecognition){toast("Brauzering ovoz tanishni qo‘llamaydi");return;}
-  if(recognition){recognition.stop();recognition=null;toast("Mikrofon to‘xtatildi");return;}
-  recognition=new SpeechRecognition();recognition.lang="uz-UZ";recognition.interimResults=false;
-  recognition.onresult=e=>{promptEl.value=e.results[0][0].transcript;promptEl.focus();};
-  recognition.onerror=()=>toast("Mikrofon ishlamadi yoki ruxsat berilmadi");
-  recognition.onend=()=>{recognition=null;};
-  recognition.start();toast("Gapirishing mumkin...");
+function finishLose(){
+  state='lose';
+  live.textContent="Vaqt tugadi";
+  showOverlay({title:'VAQT TUGADI',cls:'bad',
+    text:"Marraga yetib borolmadingiz.\nBosib o'tilgan yo'l: "+Math.floor(car.y/TRACK*100)+'%',
+    buttons:[{label:'QAYTA URINISH',fn:startRun}]});
 }
 
-// Main interactions
-$("sendBtn").addEventListener("click",()=>sendMessage());
-promptEl.addEventListener("keydown",e=>{
-  if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}
+/* ---------- kiritish ---------- */
+const map={ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right',ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down'};
+addEventListener('keydown',e=>{
+  if(e.key==='p'||e.key==='P'||e.key==='Escape'){pauseGame();return;}
+  const k=map[e.key];
+  if(k&&(state==='run'||state==='count')){keys[k]=1;e.preventDefault();}
 });
-promptEl.addEventListener("input",()=>{promptEl.style.height="auto";promptEl.style.height=Math.min(promptEl.scrollHeight,150)+"px";});
-$("newChat").onclick=startNewChat;
-$("settingsBtn").onclick=openSettings;$("topSettings").onclick=openSettings;
-$("closeModal").onclick=closeSettings;$("cancelSettings").onclick=closeSettings;
-$("settingsModal").addEventListener("click",e=>{if(e.target===$("settingsModal"))closeSettings();});
-$("saveSettings").onclick=()=>{
-  localStorage.setItem("musogpt_api_endpoint",$("apiEndpoint").value.trim());
-  localStorage.setItem("musogpt_image_endpoint",$("imageEndpoint").value.trim());
-  closeSettings();toast("Sozlamalar saqlandi");
-};
-$("clearBtn").onclick=()=>{
-  if(confirm("Barcha saqlangan suhbatlar o‘chirilsinmi?")){
-    chats=[];saveChats();startNewChat();toast("Suhbatlar tarixi tozalandi");
-  }
-};
-$("menuBtn").onclick=()=>$("sidebar").classList.toggle("open");
-$("voiceBtn").onclick=startVoice;
-$("themeBtn").onclick=()=>{
-  document.body.classList.toggle("alternate");
-  document.documentElement.style.setProperty("--cyan",document.body.classList.contains("alternate")?"#ff69d4":"#43e8ff");
-  toast("Gaming rang effekti almashtirildi");
-};
-$("attachBtn").onclick=()=>$("fileInput").click();
-$("fileInput").onchange=e=>{
-  attachedFile=e.target.files[0]||null;
-  if(attachedFile)toast("Biriktirildi: "+attachedFile.name);
-};
-$("imageBtn").onclick=generateImage;
-document.querySelectorAll(".suggestion").forEach(btn=>btn.onclick=()=>sendMessage(btn.dataset.prompt));
-document.querySelectorAll(".nav-btn[data-mode]").forEach(btn=>btn.onclick=()=>setMode(btn.dataset.mode));
+addEventListener('keyup',e=>{const k=map[e.key];if(k)keys[k]=0;});
+addEventListener('blur',()=>{for(const k in keys)keys[k]=0;pauseGame();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame();});
+document.querySelectorAll('.pad').forEach(p=>{
+  const k=p.dataset.k;
+  const on=e=>{e.preventDefault();touch[k]=1;p.classList.add('on');try{p.setPointerCapture(e.pointerId);}catch(_){}};
+  const off=()=>{touch[k]=0;p.classList.remove('on');};
+  p.addEventListener('pointerdown',on);
+  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>p.addEventListener(ev,off));
+  p.addEventListener('contextmenu',e=>e.preventDefault());
+});
+const inp=k=>keys[k]||touch[k];
 
-// Initial render
-renderHistory();
-if(chats.length===0){
-  setTimeout(()=>{
-    if(!conversation.length&&messagesEl.children.length===0){
-      // The welcome screen stays visible until the first message.
+/* ---------- yangilash ---------- */
+function update(dt){
+  const steer=inp('right')-inp('left');
+  const onRoad=Math.abs(car.x-center(car.y))<HALF-8;
+  const maxS=onRoad?560:210;
+  if(inp('up')) car.v+=320*dt; else car.v-=110*dt;
+  if(inp('down')) car.v-=720*dt;
+  if(car.v>maxS) car.v-=(onRoad?300:700)*dt;
+  car.v=Math.max(0,car.v);
+  car.a+=steer*dt*2.3*Math.min(1,car.v/150);
+  if(!steer) car.a*=Math.max(0,1-1.6*dt);
+  car.a=Math.max(-.8,Math.min(.8,car.a));
+  car.x+=Math.sin(car.a)*car.v*dt;
+  car.y+=Math.cos(car.a)*car.v*dt;
+  time+=dt;
+
+  for(const o of obstacles){
+    if(o.hit)continue;
+    if(Math.abs(o.y-car.y)<30){
+      const ox=center(o.y)+o.off;
+      if(Math.abs(ox-car.x)<24){
+        o.hit=true;car.v*=.35;penalty+=2;flash=1;shake=reduce?0:1;
+        live.textContent="To'siqqa urildingiz, plyus 2 soniya";
+      }
     }
-  },0);
+  }
+  if(!reduce&&!onRoad&&car.v>40&&parts.length<60){
+    parts.push({x:W/2+(car.x-camX)+(Math.random()*20-10),y:CAR_Y+26,vx:Math.random()*60-30,life:.6});
+  }
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i];p.life-=dt;p.y+=car.v*dt*.8;p.x+=p.vx*dt;
+    if(p.life<=0)parts.splice(i,1);
+  }
+  camX+=(car.x-camX)*Math.min(1,dt*6);
+  flash=Math.max(0,flash-dt*2.2);shake=Math.max(0,shake-dt*3);
+
+  if(car.y>=TRACK) finishWin();
+  else if(time+penalty>=LIMIT) finishLose();
 }
+
+/* ---------- chizish ---------- */
+function drawCar(){
+  ctx.save();
+  ctx.translate(W/2+(car.x-camX),CAR_Y);
+  ctx.rotate(car.a);
+  ctx.shadowColor='#b04cff';ctx.shadowBlur=26;
+  ctx.fillStyle='#7a3cff';ctx.fillRect(-17,-30,34,62);
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#000';                                  // g'ildiraklar
+  ctx.fillRect(-19,-22,6,14);ctx.fillRect(13,-22,6,14);ctx.fillRect(-19,12,6,14);ctx.fillRect(13,12,6,14);
+  ctx.fillStyle='#0b0b0f';ctx.fillRect(-14,-32,28,64);   // kuzov
+  ctx.fillStyle='#1b1c26';ctx.fillRect(-12,-30,5,60);    // yaltirash
+  ctx.fillStyle='#10213a';ctx.fillRect(-10,-14,20,9);    // old oyna
+  ctx.fillStyle='#07090f';ctx.fillRect(-10,-4,20,14);    // tom
+  ctx.fillStyle='#10213a';ctx.fillRect(-10,10,20,6);     // orqa oyna
+  ctx.fillStyle='#000';ctx.fillRect(-16,26,32,5);        // spoyler
+  ctx.fillStyle='#fff7c2';ctx.fillRect(-12,-33,7,4);ctx.fillRect(5,-33,7,4);
+  ctx.fillStyle='#ff2244';ctx.fillRect(-13,31,8,3);ctx.fillRect(5,31,8,3);
+  ctx.restore();
+}
+function drawObstacle(o){
+  const sy=CAR_Y-(o.y-car.y); if(sy<-30||sy>H+30)return;
+  const sx=W/2+center(o.y)+o.off-camX+(o.hit?18:0);
+  ctx.save();ctx.translate(sx,sy);if(o.hit)ctx.globalAlpha=.5;
+  if(o.type==='cone'){
+    ctx.fillStyle='#ff7a1a';ctx.beginPath();ctx.arc(0,0,13,0,7);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(0,0,8,0,7);ctx.fill();
+    ctx.fillStyle='#ff7a1a';ctx.beginPath();ctx.arc(0,0,4,0,7);ctx.fill();
+  }else{
+    ctx.fillStyle='#4b4f5e';ctx.beginPath();
+    ctx.moveTo(-14,4);ctx.lineTo(-8,-12);ctx.lineTo(8,-13);ctx.lineTo(15,2);ctx.lineTo(6,13);ctx.lineTo(-8,12);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#6b7084';ctx.fillRect(-6,-8,8,5);
+  }
+  ctx.restore();
+}
+function drawTree(wy,side,i){
+  const h=hash(i*13+side*5+3); if(h>.78)return;
+  const off=HALF+36+hash(i*29+side)*150;
+  const sx=W/2+center(wy)+side*off-camX, sy=CAR_Y-(wy-car.y);
+  if(sy<-50||sy>H+50||sx<-40||sx>W+40)return;
+  const s=16+h*16;
+  ctx.fillStyle='#1a0f0a';ctx.fillRect(sx-2,sy+s*.5,4,8);
+  ctx.fillStyle='#0a2a1c';ctx.beginPath();ctx.moveTo(sx,sy-s*1.3);ctx.lineTo(sx+s,sy+s*.6);ctx.lineTo(sx-s,sy+s*.6);ctx.fill();
+  ctx.fillStyle='#0f3b27';ctx.beginPath();ctx.moveTo(sx,sy-s*1.3);ctx.lineTo(sx+s*.5,sy-s*.1);ctx.lineTo(sx-s*.5,sy-s*.1);ctx.fill();
+}
+function drawNight(){
+  dctx.globalCompositeOperation='source-over';
+  dctx.clearRect(0,0,W,H);
+  dctx.fillStyle='rgba(2,4,16,.66)';dctx.fillRect(0,0,W,H);
+  dctx.globalCompositeOperation='destination-out';
+  dctx.save();dctx.translate(W/2+(car.x-camX),CAR_Y);dctx.rotate(car.a);
+  const g=dctx.createLinearGradient(0,-30,0,-380);
+  g.addColorStop(0,'rgba(0,0,0,.98)');g.addColorStop(1,'rgba(0,0,0,0)');
+  dctx.fillStyle=g;dctx.beginPath();dctx.moveTo(-10,-30);dctx.lineTo(10,-30);dctx.lineTo(125,-380);dctx.lineTo(-125,-380);dctx.fill();
+  const r=dctx.createRadialGradient(0,0,10,0,0,90);
+  r.addColorStop(0,'rgba(0,0,0,.7)');r.addColorStop(1,'rgba(0,0,0,0)');
+  dctx.fillStyle=r;dctx.fillRect(-90,-90,180,180);
+  dctx.restore();
+  ctx.drawImage(dark,0,0);
+}
+function render(){
+  ctx.save();
+  if(shake>0)ctx.translate((Math.random()-.5)*8*shake,(Math.random()-.5)*8*shake);
+  for(let sy=0;sy<H;sy+=ROW){
+    const wy=car.y+(CAR_Y-sy), cx=W/2+center(wy)-camX;
+    const band=Math.floor(wy/90)&1;
+    ctx.fillStyle=band?'#0c1d15':'#0a1812';ctx.fillRect(0,sy,W,ROW+1);
+    const cb=(Math.floor(wy/50)&1)?'#d9d9e8':'#d6224f';
+    ctx.fillStyle=cb;ctx.fillRect(cx-HALF-7,sy,7,ROW+1);ctx.fillRect(cx+HALF,sy,7,ROW+1);
+    if(wy>=TRACK&&wy<TRACK+40){
+      for(let i=0;i<10;i++){ctx.fillStyle=((i+Math.floor(wy/20))&1)?'#fff':'#111';ctx.fillRect(cx-HALF+i*20,sy,20,ROW+1);}
+    }else{
+      ctx.fillStyle=(Math.floor(wy/70)&1)?'#25282f':'#22252b';ctx.fillRect(cx-HALF,sy,HALF*2,ROW+1);
+      if(wy>-20&&(Math.floor(wy/60)&1)){ctx.fillStyle='#e8d36a';ctx.fillRect(cx-2,sy,4,ROW+1);}
+    }
+  }
+  obstacles.forEach(drawObstacle);
+  const top=car.y+CAR_Y, bot=car.y-(H-CAR_Y);
+  for(let i=Math.floor((bot-60)/80);i<=Math.ceil((top+60)/80);i++){
+    const wy=i*80+hash(i*7+1)*60;
+    drawTree(wy,-1,i);drawTree(wy,1,i);
+  }
+  parts.forEach(p=>{ctx.globalAlpha=Math.max(0,p.life/.6)*.6;ctx.fillStyle='#6b5a3a';ctx.fillRect(p.x,p.y,6,6);});
+  ctx.globalAlpha=1;
+  drawNight();
+  drawCar();
+  if(flash>0){ctx.fillStyle='rgba(255,40,80,'+(flash*.45)+')';ctx.fillRect(0,0,W,H);}
+  ctx.restore();
+
+  if(state==='count'){
+    const txt=countT>0?String(Math.ceil(countT)):"YO'L!";
+    if(txt!==lastCount){lastCount=txt;live.textContent=txt;}
+    ctx.save();ctx.textAlign='center';ctx.font='56px "Press Start 2P", monospace';
+    ctx.lineWidth=8;ctx.strokeStyle='#000';ctx.strokeText(txt,W/2,300);
+    ctx.fillStyle=countT>0?'#ffd23f':'#2de2ff';ctx.fillText(txt,W/2,300);ctx.restore();
+  }
+}
+function hud(){
+  hTime.textContent=fmt(time);
+  hSpeed.textContent=Math.round(car.v*.4)+' km/s'.replace('km/s','');
+  hPen.textContent='+'+Math.round(penalty);
+  const p=Math.min(100,car.y/TRACK*100);
+  prog.style.width=p+'%';
+  prog.parentNode.setAttribute('aria-valuenow',Math.round(p));
+}
+
+/* ---------- sikl ---------- */
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  if(state==='count'){countT-=dt;if(countT<=-.6){state='run';}}
+  else if(state==='run')update(dt);
+  render();hud();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- ishga tushirish ---------- */
+function init(){
+  if(!ctx||!dctx){showError("Brauzeringiz canvas'ni qo'llab-quvvatlamaydi. Boshqa brauzerda oching.");return;}
+  loadBest();
+  showOverlay({title:'YUKLANMOQDA...',text:'Mashina va yo\'l tayyorlanmoqda',loading:true});
+  let pct=0;const iv=setInterval(()=>{pct=Math.min(90,pct+15);ovLoadBar.style.width=pct+'%';},120);
+  const fontsReady=(document.fonts&&document.fonts.ready)?document.fonts.ready:Promise.resolve();
+  Promise.race([fontsReady,new Promise(r=>setTimeout(r,2500))]).then(()=>{
+    setTimeout(()=>{clearInterval(iv);ovLoadBar.style.width='100%';setTimeout(showReady,200);},700);
+  });
+  requestAnimationFrame(t=>{last=t;loop(t);});
+}
+init();
+})();
 </script>
 </body>
-</html>'''
-
-path = Path("/mnt/data/MUSOGPT_Gaming_AI.html")
-path.write_text(html, encoding="utf-8")
-print(f"Created: {path} ({len(html.splitlines())} lines, {path.stat().st_size:,} bytes)")
+</html>
